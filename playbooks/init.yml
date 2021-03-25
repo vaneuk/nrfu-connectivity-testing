@@ -1,0 +1,47 @@
+---
+- name: "Initialize infrastructure"
+  hosts: 
+    - "{{ setup_name }}"
+
+  tasks:
+    - name: Enable passwordless sudo
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+      become: yes
+
+    - name: Create connectivity testing directory
+      file:
+        path: ~/connectivity_testing
+        state: directory
+
+    - name: Copy tcp.sh file
+      copy:
+        src: ../scripts/tcp.sh
+        dest: ~/connectivity_testing/tcp.sh
+        mode: 0744
+    
+    - name: Copy bash script to start tcp.sh 
+      copy:
+        src: ../config/{{ setup_name }}/{{inventory_hostname}}_tcp.sh
+        dest: ~/connectivity_testing/{{inventory_hostname}}_tcp.sh
+        mode: 0744
+
+    - name: Configure syslog
+      script:
+        cmd: ../config/{{ setup_name }}/{{inventory_hostname}}_syslog.sh
+      become: yes
+
+    - name: Configure iptables
+      script:
+        cmd: ../config/{{ setup_name }}/{{inventory_hostname}}_iptables.sh
+      become: yes
+
+    - name: Install sendip package
+      package:
+        name: sendip
+        state: present
+      become: yes

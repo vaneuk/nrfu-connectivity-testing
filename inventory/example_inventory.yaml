@@ -1,0 +1,44 @@
+example_setup:
+  hosts:
+    example-vm-1:
+      ansible_host: 10.62.186.2
+      dst:
+        - example-vm-2
+        - example-vm-3
+        - example-vm-4
+    example-vm-2:
+      ansible_host: 10.62.186.3
+      dst:
+        - example-vm-1
+        - example-vm-3
+    example-vm-3:
+      ansible_host: 10.62.186.9
+      dst:
+        - example-vm-1
+        - example-vm-2
+    example-vm-4:
+      ansible_host: 10.62.186.10
+      dst:
+        - example-vm-1
+example_setup2:
+  hosts:
+    example-vm-1:
+      ansible_host: 10.62.186.2
+      dst:
+        - example-vm-2
+        - example-vm-3
+        - example-vm-4
+    example-vm-2:
+      ansible_host: 10.62.186.3
+      dst:
+        - example-vm-1
+        - example-vm-3
+    example-vm-3:
+      ansible_host: 10.62.186.9
+      dst:
+        - example-vm-1
+        - example-vm-2
+    example-vm-4:
+      ansible_host: 10.62.186.10
+      dst:
+        - example-vm-1

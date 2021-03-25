@@ -1,0 +1,7 @@
+iptables -F
+{% for peer, peer_ip in peers -%}
+iptables -A INPUT -p tcp -s {{peer_ip}} --dport 5000 -j LOG --log-tcp-sequence --log-prefix '[{{peer}}_rx]'
+iptables -A INPUT -p tcp -s {{peer_ip}} --dport 5000 -j DROP
+iptables -A OUTPUT -p tcp -d {{peer_ip}} --dport 5000 -j LOG --log-tcp-sequence --log-prefix '[{{peer}}_tx]'
+iptables -A OUTPUT -p tcp -d {{peer_ip}} --dport 5000 -j ACCEPT
+{% endfor %}

@@ -1,0 +1,19 @@
+#!/bin/bash
+echo > /etc/rsyslog.d/10-iptables_logs.conf
+mkdir /var/log/iptables_logs/
+
+{% for peer, peer_ip in peers -%}
+touch /var/log/iptables_logs/{{host}}_{{peer}}_rx.log
+touch /var/log/iptables_logs/{{host}}_{{peer}}_tx.log
+{% endfor %}
+
+
+{% for peer, peer_ip in peers -%}
+echo ":msg, contains, \"[{{peer}}_rx]\" /var/log/iptables_logs/{{host}}_{{peer}}_rx.log" >> /etc/rsyslog.d/10-iptables_logs.conf
+echo "& stop" >> /etc/rsyslog.d/10-iptables_logs.conf
+echo ":msg, contains, \"[{{peer}}_tx]\" /var/log/iptables_logs/{{host}}_{{peer}}_tx.log" >> /etc/rsyslog.d/10-iptables_logs.conf
+echo "& stop" >> /etc/rsyslog.d/10-iptables_logs.conf
+{% endfor %}
+
+chown -R --reference=/var/log/syslog /var/log/iptables_logs
+systemctl restart rsyslog
