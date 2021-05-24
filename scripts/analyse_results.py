@@ -2,6 +2,7 @@ import argparse
 
 from tabulate import tabulate
 from generate_config import load_config
+import sys, traceback
 
 
 def get_result(data: dict) -> str:
@@ -50,11 +51,22 @@ def main(setup_name, dir_name, duration):
     flows = []
     for host in iptables_data:
         for peer in iptables_data[host]:
-            flow = f'{host} -> {peer}'
-            add_flow_record(summary_data, flow, flows, duration, iptables_data[host][peer]['tx'], iptables_data[peer][host]['rx'])
-            # reverse flow
-            flow = f'{peer} -> {host}'
-            add_flow_record(summary_data, flow, flows, duration, iptables_data[peer][host]['tx'], iptables_data[host][peer]['rx'])
+            try:
+                flow = f'{host} -> {peer}'
+                add_flow_record(summary_data, flow, flows, duration, iptables_data[host][peer]['tx'], iptables_data[peer][host]['rx'])
+                # reverse flow
+                flow = f'{peer} -> {host}'
+                add_flow_record(summary_data, flow, flows, duration, iptables_data[peer][host]['tx'], iptables_data[host][peer]['rx'])
+            except KeyError:
+                print(f'Failed to find flow: host={host}, peer={peer}. Check that traffic flows defined in inventory are bidirectional.')
+                s = ("Consider adding the following to the inventory file:\n"
+                     f"    {peer}:\n"
+                     "      dst:\n"
+                     f"        - {host}\n\n"
+                     "Then run generate_config.py, ansible-playbook init.yml and rer-run the test.")
+                print(s)
+                traceback.print_exc()
+                sys.exit(1)
     result = get_result(summary_data)
     print(result)
     with open(f'../tests/{setup_name}/{dir_name}/summary.log', 'w') as f:

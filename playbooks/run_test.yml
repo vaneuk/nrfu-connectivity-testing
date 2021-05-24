@@ -64,12 +64,12 @@
     
     - name: Analyse results
       shell:
-        cmd: "python analyse_results.py {{ setup_name }} {{ TIMESTAMP }} {{ duration }}"
+        cmd: "python ../scripts/analyse_results.py {{ setup_name }} {{ TIMESTAMP }} {{ duration }}"
       delegate_to: localhost
       run_once: yes
 
     - name: Show info
       debug:
-        msg: "To view test results: cat tests/{{ setup_name }}/{{ TIMESTAMP }}/summary.log"
+        msg: "To view test results: cat ../tests/{{ setup_name }}/{{ TIMESTAMP }}/summary.log"
       delegate_to: localhost
       run_once: yes
