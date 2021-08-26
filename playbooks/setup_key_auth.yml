@@ -9,6 +9,7 @@
 # ansible_user: the username of the remote host that you want to login as
 # ansible_password: the password of that user on the remote host. Assuming you are attempting to run this to multiple hosts, the users exists to all machines and have the same password
 # [ansible_setup_passwordless_setup_group]: add the list of remote hosts you want to enable the passwordless login.
+# setup_name - extra vars
 # 
 # 
 # 
@@ -113,13 +114,13 @@
       shell: "/usr/local/bin/sshpass -p \"{{ansible_password}}\" ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ssh_key_filename}}.pub -p {{ hostvars[item].ansible_port }} \"{{ansible_user}}@{{ hostvars[item].ansible_host }}\""
       register: ssh_copy_id_execution
       with_items: 
-        - "{{ groups['all']}}"
+        - "{{ groups['setup_name']}}"
       failed_when: ssh_copy_id_execution.rc != 0
 
     # - debug:
     #     var: ssh_copy_id_execution
 
-- hosts: all
+- hosts: setup_name
   gather_facts: false
   
   tasks:
