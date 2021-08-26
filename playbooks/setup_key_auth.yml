@@ -20,18 +20,18 @@
 #
 # 
 ---
-- hosts: local_host
+- hosts: localhost
   gather_facts: false
   vars_prompt:
-  - name: confirmation
-    prompt: "Type 'YES' to establish passwordless login to the remote hosts:"
-    default: 'NO'
-    private: no
-    when: confirmation != "YES"
-  pre_tasks:
-  - name: "Check Confirmation"
-    fail: msg="Exiting... You must type 'YES' to continue."
-    when: confirmation != "YES"
+  # - name: confirmation
+  #   prompt: "Type 'YES' to establish passwordless login to the remote hosts:"
+  #   default: 'NO'
+  #   private: no
+  #   when: confirmation != "YES"
+  # pre_tasks:
+  # - name: "Check Confirmation"
+  #   fail: msg="Exiting... You must type 'YES' to continue."
+  #   when: confirmation != "YES"
 
   tasks:
     - name: check .ssh local directory exists
@@ -111,16 +111,17 @@
     #     var: ssh_config_file_key_addition
 
     - name: distribute the ssh key to the remote hosts
-      shell: "/usr/local/bin/sshpass -p \"{{ansible_password}}\" ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ssh_key_filename}}.pub -p {{ hostvars[item].ansible_port }} \"{{ansible_user}}@{{ hostvars[item].ansible_host }}\""
+      shell: "/usr/bin/sshpass -p \"{{ansible_password}}\" ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/{{ssh_key_filename}}.pub -p 22 \"{{ansible_user}}@{{ hostvars[item].ansible_host }}\""
       register: ssh_copy_id_execution
       with_items: 
-        - "{{ groups['setup_name']}}"
+        #- "{{ groups[{{ setup_name }}]}}"
+        - "{{ groups['rshb']}}"
       failed_when: ssh_copy_id_execution.rc != 0
 
     # - debug:
     #     var: ssh_copy_id_execution
 
-- hosts: setup_name
+- hosts: "{{ setup_name }}"
   gather_facts: false
   
   tasks:

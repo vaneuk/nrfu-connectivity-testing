@@ -40,6 +40,11 @@
         cmd: ../config/{{ setup_name }}/{{inventory_hostname}}_iptables.sh
       become: yes
 
+    - name: Update repositories cache
+      apt:
+        update_cache: yes
+      become: yes
+
     - name: Install sendip package
       package:
         name: sendip
