@@ -8,7 +8,7 @@ COUNTER=1
 echo $COUNTER
 while true
 do
-    for ((i = 0; i < 64; i++))
+    for ((i = 1; i < 64; i++))
     do
         sudo sendip -p ipv4 -p udp -is ${SCR_IP} -us $((5000 + ${i})) -ud 5000 ${DST_IP}
         ((COUNTER++))
