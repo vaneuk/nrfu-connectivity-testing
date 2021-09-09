@@ -1,0 +1,5 @@
+#!/bin/bash
+
+{% for peer in peers -%}
+iperf3 -s -D -p {{ peers[peer]['server_port'] }}
+{% endfor %}

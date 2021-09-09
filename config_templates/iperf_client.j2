@@ -1,0 +1,5 @@
+#!/bin/bash
+
+{% for peer in peers -%}
+setsid iperf3 -c {{ peers[peer]['ip'] }} -u -b 30k -l 25 -P 16 -Z -J --logfile iperf_logs/client_{{ host }}_server_{{ peer }}.json -p {{ peers[peer]['client_port'] }} -t ${TEST_DURATION} >/dev/null 2>&1 < /dev/null &
+{% endfor %}

@@ -2,6 +2,8 @@
 - name: "Initialize infrastructure"
   hosts: 
     - "{{ setup_name }}"
+  vars:
+    IPERF_VERSION: "foo"
 
   tasks:
     - name: Enable passwordless sudo
@@ -18,16 +20,19 @@
         path: ~/connectivity_testing
         state: directory
 
-    - name: Copy tcp.sh file
+    - name: Copy tcp.sh and udp.sh files
       copy:
-        src: ../scripts/tcp.sh
-        dest: ~/connectivity_testing/tcp.sh
+        src: ../scripts/{{ item }}
+        dest: ~/connectivity_testing/{{ item }}
         mode: 0744
+      with_items:
+        - tcp.sh
+        - udp.sh
     
-    - name: Copy bash script to start tcp.sh 
+    - name: Copy bash scripts to sendip
       copy:
-        src: ../config/{{ setup_name }}/{{inventory_hostname}}_tcp.sh
-        dest: ~/connectivity_testing/{{inventory_hostname}}_tcp.sh
+        src: ../config/{{ setup_name }}/{{inventory_hostname}}_sendip.sh
+        dest: ~/connectivity_testing/{{inventory_hostname}}_sendip.sh
         mode: 0744
 
     - name: Configure syslog

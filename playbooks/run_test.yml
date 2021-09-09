@@ -13,7 +13,10 @@
       delegate_to: localhost
 
     - name: Stop running tests (if any)
-      command: pkill tcp.sh
+      command: "{{ item }}"
+      with_items:
+        - pkill tcp.sh
+        - pkill udp.sh
       register: ps
       failed_when: "ps.rc not in [ 0, 1 ]"
 
@@ -26,9 +29,9 @@
       become: yes
 
     - name: Start test
-      shell: "nohup ./{{ inventory_hostname }}_tcp.sh </dev/null >/dev/null 2>&1 &"
+      shell: "nohup timeout {{ duration}} ./{{ inventory_hostname }}_sendip.sh {{ protocol | default('tcp') }} </dev/null >/dev/null 2>&1 &"
       args:
-        chdir: /home/{{ ansible_user }}/connectivity_testing
+        chdir: ~/connectivity_testing
 
     - name: Sleep for test duration
       pause:
@@ -40,7 +43,10 @@
       meta: reset_connection
 
     - name: Stop test
-      command: pkill tcp.sh
+      command: "{{ item }}"
+      with_items:
+        - pkill tcp.sh
+        - pkill udp.sh
       register: ps
       failed_when: "ps.rc not in [ 0, 1 ]"
 
@@ -64,7 +70,7 @@
     
     - name: Analyse results
       shell:
-        cmd: "python ../scripts/analyse_results.py {{ setup_name }} {{ TIMESTAMP }} {{ duration }}"
+        cmd: "python ../scripts/analyse_results.py {{ setup_name }} {{ TIMESTAMP }} {{ duration }} {{ protocol }}"
       delegate_to: localhost
       run_once: yes
 

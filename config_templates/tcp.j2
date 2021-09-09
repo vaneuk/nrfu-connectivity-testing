@@ -1,6 +1,0 @@
-#!/bin/bash
-set -x #echo on
-
-{% for peer, peer_ip in peers -%}
-./tcp.sh {{host_ip}} {{peer_ip}} 900 &> /dev/null &
-{% endfor %}

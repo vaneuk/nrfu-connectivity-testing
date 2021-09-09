@@ -1,0 +1,88 @@
+---
+- name: "Initialize infrastructure"
+  hosts: 
+    - "{{ setup_name }}"
+  vars:
+    IPERF_VERSION: "foo"
+
+  tasks:
+    - name: Enable passwordless sudo
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+      become: yes
+
+    - name: Create iperf_logs directory
+      file:
+        path: "~/connectivity_testing/iperf_logs/"
+        state: directory
+
+    - name: Update repositories cache
+      apt:
+        update_cache: yes
+      become: yes
+
+    - name: Install make and gcc packages
+      package:
+        name:
+          - gcc
+          - make
+        state: present
+      become: yes
+
+    - name: Download iperf 3.10.1
+      get_url:
+        url: https://downloads.es.net/pub/iperf/iperf-3.10.1.tar.gz
+        dest: "~/iperf-3.10.1.tar.gz"
+
+    - name: Unarchive iperf
+      ansible.builtin.unarchive:
+        src: "~/iperf-3.10.1.tar.gz"
+        dest: "~/"
+        remote_src: yes
+
+    - name: Check iperf version
+      shell: "iperf3 -v | grep iperf | cut -d ' '  -f 2"
+      failed_when: "'never'=='fail'"
+      register: IPERF_VERSION
+      
+    - name: Configure iperf
+      shell: './configure'
+      args:
+        chdir: "~/iperf-3.10.1"
+        creates: "Makefile"
+      when: IPERF_VERSION.stdout != "3.10.1"
+
+    - name: Run make
+      community.general.make:
+        chdir: "~/iperf-3.10.1"
+      when: IPERF_VERSION.stdout != "3.10.1"
+
+    - name: Run 'make install' as root
+      community.general.make:
+        chdir: "/home/{{ ansible_user }}/iperf-3.10.1" # ~/ does not work because of become
+        target: install
+      become: yes
+      when: IPERF_VERSION.stdout != "3.10.1"
+
+    - name: Install libiperf0 package
+      package:
+        name:
+          - libiperf0
+        state: present
+      become: yes
+
+    - name: Check iperf version (again)
+      shell: "iperf3 -v | grep iperf | cut -d ' '  -f 2"
+      failed_when: "'never'=='fail'"
+      register: IPERF_VERSION
+
+    - name: Check that correct version of iperf is installed
+      ansible.builtin.assert:
+        that:
+        - IPERF_VERSION.stdout == "3.10.1"
+        fail_msg: "iperf3 version 3.10.1 is NOT installed. Current version: {{ IPERF_VERSION.stdout }}"
+        success_msg: "iperf3 version 3.10.1 is installed"

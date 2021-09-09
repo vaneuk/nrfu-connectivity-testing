@@ -12,13 +12,13 @@ def get_result(data: dict) -> str:
     return r
 
 
-def get_iptables_data(config: dict, dir_name: str, setup_name: str) -> None:
+def get_iptables_data(config: dict, dir_name: str, setup_name: str, protocol: str) -> None:
     iptables_data = {}
-    for host in config['hosts']:
+    for host in config:
         iptables_data[host] = dict()
         with open(f'../tests/{setup_name}/{dir_name}/{host}.log') as f:
             for line in f.readlines():
-                if 'LOG' in line:
+                if 'LOG' in line and protocol in line:
                     line_list = line.strip().split(' ')
                     pckts = int(line_list[0])
                     peer = line_list[-1][2:-5]
@@ -43,10 +43,10 @@ def add_flow_record(summary_data: list, flow: str, flows: list, duration: int, t
         flows.append(flow)
 
 
-def main(setup_name, dir_name, duration):
+def main(setup_name, dir_name, duration, protocol):
     config = load_config(setup_name)
 
-    iptables_data = get_iptables_data(config, dir_name, setup_name)
+    iptables_data = get_iptables_data(config, dir_name, setup_name, protocol)
     summary_data = []
     flows = []
     for host in iptables_data:
@@ -78,6 +78,7 @@ if __name__ == '__main__':
     parser.add_argument("setup_name")
     parser.add_argument("dir")
     parser.add_argument("duration")
+    parser.add_argument("protocol")
 
     args = parser.parse_args()
-    main(args.setup_name, args.dir, int(args.duration))
+    main(args.setup_name, args.dir, int(args.duration), args.protocol)

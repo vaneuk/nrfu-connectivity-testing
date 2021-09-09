@@ -1,0 +1,152 @@
+---
+- name: "Run connectivity test"
+  gather_facts: no
+  hosts: 
+    - "{{ setup_name }}"
+  vars:
+    # IPERF_SERVER_COMMANDS: "{{ lookup('file', '../config/{{ setup_name }}/{{ inventory_hostname }}_iperf_server.sh' ) }}"
+    # IPERF_CLIENT_COMMANDS: "{{ lookup('file', '../config/{{ setup_name }}/{{ inventory_hostname }}_iperf_client.sh' ) }}"
+    # TIMESTAMP: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}"
+    # TIMESTAMP: "{{ TIMESTAMP }}_{{ postfix|default('') }}"
+    # UPLOAD_FILES: "{{ upload|default('no') }}"
+  environment:
+    TEST_DURATION: "{{ duration }}"
+
+  tasks:
+
+    - name: "LOG >> Store timestamp as fact"
+      set_fact:
+        TIMESTAMP: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}"
+        cacheable: yes
+      run_once: true
+      delegate_to: localhost
+
+    - name: Stop running tests (if any)
+      command: pkill iperf3
+      register: ps
+      failed_when: "ps.rc not in [ 0, 1 ]"
+
+    # - name: Find json files from previous runs
+    #   find:
+    #     paths: "/home/{{ ansible_user }}/connectivity_testing/"
+    #     file_type: file
+    #     patterns: ".*\\.json"
+    #     use_regex: yes
+    #   register: json_files
+
+    # - name: Remove json files from previous runs
+    #   file:
+    #     path: "{{ item.path }}"
+    #     state: absent
+    #   with_items: "{{ json_files.files }}"
+      # no_log: True
+    - name: Delete iperf logs archive
+      file:
+        path: "/home/{{ ansible_user }}/connectivity_testing/{{ inventory_hostname }}_logs.zip"
+        state: absent
+
+    # - name: Delete iperf logs directory
+    #   file:
+    #     path: "/home/{{ ansible_user }}/connectivity_testing/iperf_logs/"
+    #     state: absent
+    #   register: json_files
+
+    # - name: Create iperf logs directory
+    #   file:
+    #     path: "/home/{{ ansible_user }}/connectivity_testing/iperf_logs/"
+    #     state: directory
+
+    - name: Copy shell scripts to start iperf servers and clients
+      copy:
+        src: ../config/{{ setup_name }}/{{inventory_hostname}}_{{ item }}
+        dest: ~/connectivity_testing/{{inventory_hostname}}_{{ item }}
+        mode: 0744
+      with_items:
+        - "iperf_server.sh"
+        - "iperf_client.sh"
+      tags:
+        - upload
+        - never
+
+    - name: Start iperf servers
+      shell: './{{ inventory_hostname }}_iperf_server.sh'
+      args:
+        chdir: /home/{{ ansible_user }}/connectivity_testing
+
+    - name: Start iperf clients
+      shell: "./{{ inventory_hostname }}_iperf_client.sh"
+      args:
+        chdir: /home/{{ ansible_user }}/connectivity_testing
+
+    - name: Sleep for test duration
+      pause:
+        seconds: "{{ duration }}"
+      run_once: yes
+      delegate_to: localhost
+
+    - name: reset the connection
+      meta: reset_connection
+
+    - name: Check that tests have finished
+      shell: "ps aux | grep 'iperf3 -c' | grep -v grep | wc -l"
+      register: IPERF_PIDS
+      until: IPERF_PIDS.stdout == "0"
+      retries: 20
+      delay: 5
+
+    # - name: Stop test
+    #   command: pkill tcp.sh
+    #   register: ps
+    #   failed_when: "ps.rc not in [ 0, 1 ]"
+
+    # - name: "LOG >> Copy iptables output"
+    #   command: iptables -L -xnv
+    #   become: yes
+    #   register: ipt
+
+    - name: Create results directory
+      file:
+        path: "../tests/{{ setup_name }}/{{ TIMESTAMP }}"
+        state: directory
+      delegate_to: localhost
+      run_once: yes
+
+    - name: Compress directory with iperf logs
+      community.general.archive:
+        path: "/home/{{ ansible_user }}/connectivity_testing/iperf_logs/*"
+        dest: "/home/{{ ansible_user }}/connectivity_testing/{{ inventory_hostname }}_logs.zip"
+        format: zip
+        remove: true
+
+    - name: Store archive file into local logs directory
+      ansible.builtin.fetch:
+        src: "/home/{{ ansible_user }}/connectivity_testing/{{ inventory_hostname }}_logs.zip"
+        dest: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/"
+        flat: yes
+
+    - name: Unarchive downloaded archives
+      ansible.builtin.unarchive:
+        src: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/{{ item }}_logs.zip"
+        dest: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/"
+        remote_src: yes
+      loop: "{{ ansible_play_batch }}"
+      delegate_to: localhost
+      run_once: true
+
+    # - name: Save iptables output
+    #   copy:
+    #     content: "{{ ipt.stdout }}"
+    #     dest: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/{{ inventory_hostname }}.log"
+    #   delegate_to: localhost
+    
+    - name: Analyse results
+      shell:
+        cmd: "python ../scripts/analyse_results_iperf.py {{ setup_name }} {{ TIMESTAMP }}"
+      delegate_to: localhost
+      run_once: yes
+
+    - name: Show info
+      debug:
+        msg: "To view test results: cat ../tests/{{ setup_name }}/{{ TIMESTAMP }}/summary.log"
+      delegate_to: localhost
+      run_once: yes

@@ -1,0 +1,8 @@
+#!/bin/bash
+set -x #echo on
+
+PROTOCOL=${1}
+
+{% for peer in peers -%}
+./${PROTOCOL}.sh {{ host_ip }} {{ peers[peer]['ip'] }} 900 &> /dev/null &
+{% endfor %}
