@@ -85,6 +85,7 @@ def main(setup_name, dir_name):
     print(result)
     with open(f'../tests/{setup_name}/{dir_name}/summary.log', 'w') as f:
         f.write(result)
+        f.write('\n')
 
 
 if __name__ == '__main__':
