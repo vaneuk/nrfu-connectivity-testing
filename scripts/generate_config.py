@@ -10,7 +10,6 @@ import json
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
-IPERF_SERVER_START_PORT = 5200
 IPERF_PORT_START = 5200
 TEMPLATES = {
     'sendip': ['iptables', 'syslog', 'sendip'],

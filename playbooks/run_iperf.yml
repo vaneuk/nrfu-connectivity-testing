@@ -26,20 +26,21 @@
       register: ps
       failed_when: "ps.rc not in [ 0, 1 ]"
 
-    # - name: Find json files from previous runs
-    #   find:
-    #     paths: "/home/{{ ansible_user }}/connectivity_testing/"
-    #     file_type: file
-    #     patterns: ".*\\.json"
-    #     use_regex: yes
-    #   register: json_files
+    - name: Find json files from previous runs
+      find:
+        paths: "/home/{{ ansible_user }}/connectivity_testing/iperf_logs/"
+        file_type: file
+        patterns: ".*\\.json"
+        use_regex: yes
+      register: json_files
 
-    # - name: Remove json files from previous runs
-    #   file:
-    #     path: "{{ item.path }}"
-    #     state: absent
-    #   with_items: "{{ json_files.files }}"
-      # no_log: True
+    - name: Remove json files from previous runs
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ json_files.files }}"
+      no_log: True
+
     - name: Delete iperf logs archive
       file:
         path: "/home/{{ ansible_user }}/connectivity_testing/{{ inventory_hostname }}_logs.zip"
@@ -91,18 +92,9 @@
       shell: "ps aux | grep 'iperf3 -c' | grep -v grep | wc -l"
       register: IPERF_PIDS
       until: IPERF_PIDS.stdout == "0"
-      retries: 20
+      retries: 5
       delay: 5
-
-    # - name: Stop test
-    #   command: pkill tcp.sh
-    #   register: ps
-    #   failed_when: "ps.rc not in [ 0, 1 ]"
-
-    # - name: "LOG >> Copy iptables output"
-    #   command: iptables -L -xnv
-    #   become: yes
-    #   register: ipt
+      ignore_errors: yes
 
     - name: Create results directory
       file:
@@ -116,7 +108,7 @@
         path: "/home/{{ ansible_user }}/connectivity_testing/iperf_logs/*"
         dest: "/home/{{ ansible_user }}/connectivity_testing/{{ inventory_hostname }}_logs.zip"
         format: zip
-        remove: true
+        # remove: true
 
     - name: Store archive file into local logs directory
       ansible.builtin.fetch:
@@ -133,15 +125,9 @@
       delegate_to: localhost
       run_once: true
 
-    # - name: Save iptables output
-    #   copy:
-    #     content: "{{ ipt.stdout }}"
-    #     dest: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/{{ inventory_hostname }}.log"
-    #   delegate_to: localhost
-    
     - name: Analyse results
       shell:
-        cmd: "python ../scripts/analyse_results_iperf.py {{ setup_name }} {{ TIMESTAMP }}"
+        cmd: "python ../scripts/analyse_results_iperf.py {{ setup_name }} {{ TIMESTAMP }} {{duration}}"
       delegate_to: localhost
       run_once: yes
 
