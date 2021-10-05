@@ -92,8 +92,8 @@
       shell: "ps aux | grep 'iperf3 -c' | grep -v grep | wc -l"
       register: IPERF_PIDS
       until: IPERF_PIDS.stdout == "0"
-      retries: 5
-      delay: 5
+      retries: 2
+      delay: 3
       ignore_errors: yes
 
     - name: Create results directory
