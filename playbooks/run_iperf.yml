@@ -3,12 +3,6 @@
   gather_facts: no
   hosts: 
     - "{{ setup_name }}"
-  vars:
-    # IPERF_SERVER_COMMANDS: "{{ lookup('file', '../config/{{ setup_name }}/{{ inventory_hostname }}_iperf_server.sh' ) }}"
-    # IPERF_CLIENT_COMMANDS: "{{ lookup('file', '../config/{{ setup_name }}/{{ inventory_hostname }}_iperf_client.sh' ) }}"
-    # TIMESTAMP: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}"
-    # TIMESTAMP: "{{ TIMESTAMP }}_{{ postfix|default('') }}"
-    # UPLOAD_FILES: "{{ upload|default('no') }}"
   environment:
     TEST_DURATION: "{{ duration }}"
 
@@ -45,17 +39,6 @@
       file:
         path: "/home/{{ ansible_user }}/connectivity_testing/{{ inventory_hostname }}_logs.zip"
         state: absent
-
-    # - name: Delete iperf logs directory
-    #   file:
-    #     path: "/home/{{ ansible_user }}/connectivity_testing/iperf_logs/"
-    #     state: absent
-    #   register: json_files
-
-    # - name: Create iperf logs directory
-    #   file:
-    #     path: "/home/{{ ansible_user }}/connectivity_testing/iperf_logs/"
-    #     state: directory
 
     - name: Copy shell scripts to start iperf servers and clients
       copy:
@@ -118,12 +101,10 @@
 
     - name: Unarchive downloaded archives
       ansible.builtin.unarchive:
-        src: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/{{ item }}_logs.zip"
+        src: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/{{ inventory_hostname }}_logs.zip"
         dest: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/"
         remote_src: yes
-      loop: "{{ ansible_play_batch }}"
       delegate_to: localhost
-      run_once: true
 
     - name: Analyse results
       shell:
