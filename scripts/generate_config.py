@@ -21,6 +21,8 @@ def generate_config(config: dict, template_name: str, setup_name: str) -> None:
 def get_ip(config, dst):
     for host in config['hosts']:
         if host == dst:
+            if 'data_ip' in config['hosts'][host]:
+                return config['hosts'][host]['data_ip']
             return config['hosts'][host]['ansible_host']
 
 
