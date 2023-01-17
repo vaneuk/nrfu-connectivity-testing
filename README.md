@@ -15,8 +15,8 @@ python -m pip install -r requirements.txt
 
 ## Usage
 Prerequisites:
-- Configure ansible inventory, refer to the example in [example inventory](inventory/example_setup.yaml).
-- Configure username and sudo password in ansible group vars. Sudo password is used only once to enable passwordless sudo ("%sudo ALL=(ALL) NOPASSWD: ALL" will be added to /etc/sudoers). Refer to the example in [example group_vars file](inventory/example_setup.yaml).
+- Configure ansible inventory, refer to the example in [example inventory](inventory/example_inventory.yaml).
+- Configure username and sudo password in ansible group vars. Sudo password is used only once to enable passwordless sudo ("%sudo ALL=(ALL) NOPASSWD: ALL" will be added to /etc/sudoers). Refer to the example in [example group_vars file](inventory/example_inventory.yaml).
 
 
 Generate configs for the setup:
@@ -41,7 +41,7 @@ ansible-playbook run_test.yml --extra-vars "setup_name=example_setup duration=10
 
 ## Example
 ### Topology
-Traffic flows are configured in ansible inventory file. The following traffic flows are present in [example_setup.yaml](inventory/example_setup.yaml).
+Traffic flows are configured in ansible inventory file. The following traffic flows are present in [example_inventory.yaml](inventory/example_inventory.yaml).
 ```
  ┌───────────────────────────────────────────────────────┐
  │                                                       │
