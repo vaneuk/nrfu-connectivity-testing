@@ -5,5 +5,5 @@ SIZE=${1}
 FLOWS=${2}
 
 {% for peer, peer_ip in peers -%}
-./udp.sh {{peer_ip}} {SIZE} ${FLOWS} &> /dev/null &
+./nping.sh {{peer_ip}} ${SIZE} ${FLOWS}
 {% endfor %}
