@@ -13,7 +13,11 @@ from jinja2 import Environment, FileSystemLoader
 def generate_config(config: dict, template_name: str, setup_name: str) -> None:
     template = env.get_template(f'{template_name}.j2')
     for host in config['hosts']:
-        output = template.render(peers=config['hosts'][host]['peers'], host=host, host_ip=config['hosts'][host]['ansible_host'])
+        if 'data_ip' in config['hosts'][host]:
+            host_ip = config['hosts'][host]['data_ip']
+        else:
+            host_ip = config['hosts'][host]['ansible_host']
+        output = template.render(peers=config['hosts'][host]['peers'], host=host, host_ip=host_ip)
         with open(f'../config/{setup_name}/{host}_{template_name}.sh', 'w') as f:
             f.write(output)
 
