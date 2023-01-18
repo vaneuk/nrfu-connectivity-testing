@@ -22,7 +22,7 @@
       become: yes
 
     - name: Start test
-      shell: ./{{ inventory_hostname }}_nping.sh
+      shell: ./{{ inventory_hostname }}_nping.sh {{ size | default(900) }} {{ flows | default(16) }}
       args:
         chdir: /home/{{ ansible_user }}/connectivity_testing
 
