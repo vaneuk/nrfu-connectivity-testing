@@ -1,0 +1,71 @@
+---
+- name: "Run connectivity test"
+  gather_facts: no
+  hosts: 
+    - "{{ setup_name }}"
+
+  tasks:
+    - name: "LOG >> Store timestamp as fact"
+      set_fact:
+        TIMESTAMP: "{{ lookup('pipe','date +%Y-%m-%dT%H-%M-%S') }}"
+        cacheable: yes
+      run_once: true
+      delegate_to: localhost
+
+    - name: Stop running tests (if any)
+      command: pkill nping
+      register: ps
+      failed_when: "ps.rc not in [ 0, 1 ]"
+
+    - name: Clear iptables
+      command: iptables -Z
+      become: yes
+
+    - name: Start test
+      shell: ./{{ inventory_hostname }}_nping.sh
+      args:
+        chdir: /home/{{ ansible_user }}/connectivity_testing
+
+    - name: Sleep for test duration
+      pause:
+        seconds: "{{ duration }}"
+      run_once: yes
+      delegate_to: localhost
+
+    - name: reset the connection
+      meta: reset_connection
+
+    - name: Stop test
+      command: pkill nping
+      register: ps
+      failed_when: "ps.rc not in [ 0, 1 ]"
+
+    - name: "LOG >> Copy iptables output"
+      command: iptables -L -xnv
+      become: yes
+      register: ipt
+
+    - name: Create results directory
+      file:
+        path: ../tests/{{ setup_name }}/{{ TIMESTAMP }}
+        state: directory
+      delegate_to: localhost
+      run_once: yes
+
+    - name: Save iptables output
+      copy:
+        content: "{{ ipt.stdout }}"
+        dest: "../tests/{{ setup_name }}/{{ TIMESTAMP }}/{{ inventory_hostname }}.log"
+      delegate_to: localhost
+    
+    - name: Analyse results
+      shell:
+        cmd: "python ../scripts/analyse_results.py {{ setup_name }} {{ TIMESTAMP }} {{ duration }}"
+      delegate_to: localhost
+      run_once: yes
+
+    - name: Show info
+      debug:
+        msg: "To view test results: cat ../tests/{{ setup_name }}/{{ TIMESTAMP }}/summary.log"
+      delegate_to: localhost
+      run_once: yes

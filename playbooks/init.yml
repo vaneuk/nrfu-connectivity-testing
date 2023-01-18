@@ -46,3 +46,9 @@
         name: sendip
         state: present
       become: yes
+
+    - name: Install nmap package
+      package:
+        name: nmap
+        state: present
+      become: yes

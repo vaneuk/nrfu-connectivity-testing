@@ -57,7 +57,7 @@ def main(setup_name):
     config = load_config(setup_name)
     add_peers_variable(config)
     pathlib.Path(f'../config/{setup_name}').mkdir(exist_ok=True)
-    templates = ['iptables_tcp', 'iptables_udp', 'tcp', 'udp', 'syslog']
+    templates = ['iptables_tcp', 'iptables_udp', 'iptables_nping', 'tcp', 'udp', 'syslog', 'nping']
     for t in templates:
         generate_config(config, t, setup_name)
 

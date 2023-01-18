@@ -1,0 +1,5 @@
+iptables -F
+{% for peer, peer_ip in peers -%}
+iptables -A INPUT -p udp -s {{peer_ip}} --dport 5000 -j DROP -m comment --comment '[{{peer}}_rx]'
+iptables -A OUTPUT -p udp -d {{peer_ip}} --dport 5000 -j ACCEPT -m comment --comment '[{{peer}}_tx]'
+{% endfor %}
