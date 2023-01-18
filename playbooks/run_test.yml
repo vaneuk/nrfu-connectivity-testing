@@ -26,7 +26,7 @@
       become: yes
 
     - name: Start test
-      shell: "nohup ./{{ inventory_hostname }}_tcp.sh </dev/null >/dev/null 2>&1 &"
+      shell: "nohup ./{{ inventory_hostname }}_{{ proto }}.sh </dev/null >/dev/null 2>&1 &"
       args:
         chdir: /home/{{ ansible_user }}/connectivity_testing
 

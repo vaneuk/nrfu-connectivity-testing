@@ -18,13 +18,13 @@
         path: ~/connectivity_testing
         state: directory
 
-    - name: Copy tcp.sh file
+    - name: Copy {{ proto }}.sh file
       copy:
         src: ../scripts/{{ proto }}.sh
         dest: ~/connectivity_testing/{{ proto }}.sh
         mode: 0744
 
-    - name: Copy bash script to start tcp.sh 
+    - name: Copy bash script to start {{ proto }}.sh
       copy:
         src: ../config/{{ setup_name }}/{{inventory_hostname}}_{{ proto }}.sh
         dest: ~/connectivity_testing/{{inventory_hostname}}_{{ proto }}.sh
