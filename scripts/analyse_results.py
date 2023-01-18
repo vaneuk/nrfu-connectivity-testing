@@ -26,6 +26,14 @@ def get_iptables_data(config: dict, dir_name: str, setup_name: str) -> None:
                     if peer not in iptables_data[host]:
                         iptables_data[host][peer] = dict()
                     iptables_data[host][peer][direction] = pckts
+                if '/*' in line:
+                    line_list = line.strip().split(' ')
+                    pckts = int(line_list[0])
+                    peer = line_list[-2][1:-4]
+                    direction = line_list[-2][-3:-1]
+                    if peer not in iptables_data[host]:
+                        iptables_data[host][peer] = dict()
+                    iptables_data[host][peer][direction] = pckts
 
     return iptables_data
 
@@ -47,6 +55,7 @@ def main(setup_name, dir_name, duration):
     config = load_config(setup_name)
 
     iptables_data = get_iptables_data(config, dir_name, setup_name)
+    print(iptables_data)
     summary_data = []
     flows = []
     for host in iptables_data:
