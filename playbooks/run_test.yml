@@ -13,7 +13,7 @@
       delegate_to: localhost
 
     - name: Stop running tests (if any)
-      command: pkill tcp.sh
+      command: pkill {{ proto }}.sh
       register: ps
       failed_when: "ps.rc not in [ 0, 1 ]"
 
@@ -40,7 +40,7 @@
       meta: reset_connection
 
     - name: Stop test
-      command: pkill tcp.sh
+      command: pkill {{ proto }}.sh
       register: ps
       failed_when: "ps.rc not in [ 0, 1 ]"
 

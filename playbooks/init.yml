@@ -20,24 +20,25 @@
 
     - name: Copy tcp.sh file
       copy:
-        src: ../scripts/tcp.sh
-        dest: ~/connectivity_testing/tcp.sh
+        src: ../scripts/{{ proto }}.sh
+        dest: ~/connectivity_testing/{{ proto }}.sh
         mode: 0744
-    
+
     - name: Copy bash script to start tcp.sh 
       copy:
-        src: ../config/{{ setup_name }}/{{inventory_hostname}}_tcp.sh
-        dest: ~/connectivity_testing/{{inventory_hostname}}_tcp.sh
+        src: ../config/{{ setup_name }}/{{inventory_hostname}}_{{ proto }}.sh
+        dest: ~/connectivity_testing/{{inventory_hostname}}_{{ proto }}.sh
         mode: 0744
 
     - name: Configure syslog
       script:
         cmd: ../config/{{ setup_name }}/{{inventory_hostname}}_syslog.sh
       become: yes
+      tags: syslog
 
     - name: Configure iptables
       script:
-        cmd: ../config/{{ setup_name }}/{{inventory_hostname}}_iptables.sh
+        cmd: ../config/{{ setup_name }}/{{inventory_hostname}}_iptables_{{ proto }}.sh
       become: yes
 
     - name: Install sendip package
