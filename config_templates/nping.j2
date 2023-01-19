@@ -3,7 +3,8 @@ set -x #echo on
 
 SIZE=${1}
 FLOWS=${2}
+DELAY=${3}
 
 {% for peer, peer_ip in peers -%}
-./nping.sh {{peer_ip}} ${SIZE} ${FLOWS}
+./nping.sh {{peer_ip}} ${SIZE} ${FLOWS} ${DELAY}
 {% endfor %}

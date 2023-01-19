@@ -22,7 +22,7 @@
       become: yes
 
     - name: Start test
-      shell: ./{{ inventory_hostname }}_nping.sh {{ size | default(900) }} {{ flows | default(16) }}
+      shell: nohup ./{{ inventory_hostname }}_nping.sh {{ size | default(900) }} {{ flows | default(16) }} {{ delay | default(100) }}
       args:
         chdir: /home/{{ ansible_user }}/connectivity_testing
 
@@ -31,6 +31,7 @@
         seconds: "{{ duration }}"
       run_once: yes
       delegate_to: localhost
+      register: pause_output
 
     - name: reset the connection
       meta: reset_connection
@@ -60,12 +61,13 @@
     
     - name: Analyse results
       shell:
-        cmd: "python ../scripts/analyse_results.py {{ setup_name }} {{ TIMESTAMP }} {{ duration }}"
+        cmd: "python ../scripts/analyse_nping_results.py {{ setup_name }} {{ TIMESTAMP }} {{ delay }}"
       delegate_to: localhost
       run_once: yes
 
     - name: Show info
       debug:
         msg: "To view test results: cat ../tests/{{ setup_name }}/{{ TIMESTAMP }}/summary.log"
+        msg: "PAUSED FOR {{pause_output}}"
       delegate_to: localhost
       run_once: yes
