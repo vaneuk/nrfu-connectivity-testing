@@ -4,9 +4,9 @@
   hosts: 
     - "{{ setup_name }}"
   vars:
-    size: {{ size | default(900) }}
-    flows: {{ flows | default(16) }}
-    delay: {{ delay | default(100) }}
+    size: "{{ size | default(900) }}"
+    flows: "{{ flows | default(16) }}"
+    delay: "{{ delay | default(100) }}"
 
   tasks:
     - name: "LOG >> Store timestamp as fact"
