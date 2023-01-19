@@ -1,5 +1,7 @@
 iptables -F
 {% for peer, peer_ip in peers -%}
-iptables -A INPUT -p udp -s {{peer_ip}} --dport 5000 -j DROP -m comment --comment '[{{peer}}_rx]'
-iptables -A OUTPUT -p udp -d {{peer_ip}} --dport 5000 -j ACCEPT -m comment --comment '[{{peer}}_tx]'
+{% for flow_number in flows -%}
+iptables -A INPUT -p udp -s {{peer_ip}} --dport 5000 --sport {{flow_number}} -j DROP -m comment --comment '[{{peer}}_rx_{{flow_number}}]'
+iptables -A OUTPUT -p udp -d {{peer_ip}} --dport 5000 --sport {{flow_number}} -j ACCEPT -m comment --comment '[{{peer}}_tx_{{flow_number}}]'
+{% endfor %}
 {% endfor %}

@@ -10,14 +10,14 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 
 
-def generate_config(config: dict, template_name: str, setup_name: str) -> None:
+def generate_config(config: dict, template_name: str, setup_name: str, flows: list) -> None:
     template = env.get_template(f'{template_name}.j2')
     for host in config['hosts']:
         if 'data_ip' in config['hosts'][host]:
             host_ip = config['hosts'][host]['data_ip']
         else:
             host_ip = config['hosts'][host]['ansible_host']
-        output = template.render(peers=config['hosts'][host]['peers'], host=host, host_ip=host_ip)
+        output = template.render(peers=config['hosts'][host]['peers'], host=host, host_ip=host_ip, flows=flows)
         with open(f'../config/{setup_name}/{host}_{template_name}.sh', 'w') as f:
             f.write(output)
 
@@ -53,20 +53,24 @@ def load_config(setup_name):
     sys.exit(1)
 
 
-def main(setup_name):
+def main(cmd_args):
+    setup_name = cmd_args.setup_name
+    flows = [cmd_args.sport + i for i in range(cmd_args.flows)]
     config = load_config(setup_name)
     add_peers_variable(config)
     pathlib.Path(f'../config/{setup_name}').mkdir(exist_ok=True)
     templates = ['iptables_tcp', 'iptables_udp', 'iptables_nping', 'tcp', 'udp', 'syslog', 'nping']
     for t in templates:
-        generate_config(config, t, setup_name)
+        generate_config(config, t, setup_name, flows)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("setup_name", help="name of ansible inventory group to run tests on")
+    parser.add_argument("--flows", help="number of flows (for nping only)", required=False, default=16)
+    parser.add_argument("--sport", help="start source port for nping flows", required=False, default=5001)
     args = parser.parse_args()
 
     file_loader = FileSystemLoader('../config_templates')
     env = Environment(loader=file_loader)
-    main(args.setup_name)
+    main(args)
