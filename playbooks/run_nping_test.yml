@@ -4,9 +4,9 @@
   hosts: 
     - "{{ setup_name }}"
   vars:
-    size: "{{ size | default(900) }}"
-    flows: "{{ flows | default(16) }}"
-    delay: "{{ delay | default(100) }}"
+    packet_size: "{{ size | default(900) }}"
+    packet_delay: "{{ delay | default(100) }}"
+    number_of_flows: "{{ flows | default(16) }}"
 
   tasks:
     - name: "LOG >> Store timestamp as fact"
@@ -26,7 +26,7 @@
       become: yes
 
     - name: Start test
-      shell: nohup ./{{ inventory_hostname }}_nping.sh {{ size }} {{ flows }} {{ delay }}
+      shell: nohup ./{{ inventory_hostname }}_nping.sh {{ packet_size }} {{ number_of_flows }} {{ packet_delay }}
       args:
         chdir: /home/{{ ansible_user }}/connectivity_testing
 
@@ -64,7 +64,7 @@
     
     - name: Analyse results
       shell:
-        cmd: "python ../scripts/analyse_nping_results.py {{ setup_name }} {{ TIMESTAMP }} {{ delay }}"
+        cmd: "python ../scripts/analyse_nping_results.py {{ setup_name }} {{ TIMESTAMP }} {{ packet_delay }}"
       delegate_to: localhost
       run_once: yes
 
