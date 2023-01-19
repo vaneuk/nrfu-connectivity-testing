@@ -22,12 +22,12 @@ def generate_config(config: dict, template_name: str, setup_name: str) -> None:
             f.write(output)
 
 
-def get_ip(config, dst):
-    for host in config['hosts']:
-        if host == dst:
-            if 'data_ip' in config['hosts'][host]:
-                return config['hosts'][host]['data_ip']
-            return config['hosts'][host]['ansible_host']
+def get_ip(hosts, dst):
+    if dst in hosts:
+        if 'data_ip' in hosts[dst]:
+            return hosts[dst]['data_ip']
+        return hosts[dst]['ansible_host']
+    return None
 
 
 def add_peers_variable(config: dict) -> None:
@@ -35,7 +35,7 @@ def add_peers_variable(config: dict) -> None:
         config['hosts'][host]['dst_ip'] = list()
         config['hosts'][host]['peers'] = list()
         for d in config['hosts'][host]['dst']:
-            config['hosts'][host]['dst_ip'].append(get_ip(config, d))
+            config['hosts'][host]['dst_ip'].append(get_ip(config['hosts'], d))
         for peer in zip(config['hosts'][host]['dst'], config['hosts'][host]['dst_ip']):
             config['hosts'][host]['peers'].append(peer)
 
@@ -60,6 +60,8 @@ def main(setup_name):
     templates = ['iptables_tcp', 'iptables_udp', 'iptables_nping', 'tcp', 'udp', 'syslog', 'nping']
     for t in templates:
         generate_config(config, t, setup_name)
+    # with open('config.yml', 'w') as outfile:
+    #     yaml.dump(config, outfile, indent=4, default_flow_style=False)
 
 
 if __name__ == '__main__':
