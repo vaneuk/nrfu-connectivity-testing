@@ -3,6 +3,10 @@
   gather_facts: no
   hosts: 
     - "{{ setup_name }}"
+  vars:
+    size: {{ size | default(900) }}
+    flows: {{ flows | default(16) }}
+    delay: {{ delay | default(100) }}
 
   tasks:
     - name: "LOG >> Store timestamp as fact"
@@ -22,7 +26,7 @@
       become: yes
 
     - name: Start test
-      shell: nohup ./{{ inventory_hostname }}_nping.sh {{ size | default(900) }} {{ flows | default(16) }} {{ delay | default(100) }}
+      shell: nohup ./{{ inventory_hostname }}_nping.sh {{ size }} {{ flows }} {{ delay }}
       args:
         chdir: /home/{{ ansible_user }}/connectivity_testing
 
@@ -31,7 +35,6 @@
         seconds: "{{ duration }}"
       run_once: yes
       delegate_to: localhost
-      register: pause_output
 
     - name: reset the connection
       meta: reset_connection
@@ -68,6 +71,5 @@
     - name: Show info
       debug:
         msg: "To view test results: cat ../tests/{{ setup_name }}/{{ TIMESTAMP }}/summary.log"
-        msg: "PAUSED FOR {{pause_output}}"
       delegate_to: localhost
       run_once: yes
